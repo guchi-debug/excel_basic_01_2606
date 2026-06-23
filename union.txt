@@ -1,0 +1,78 @@
+Sub union()
+    
+    ' 「結合」シートを参照
+    Dim ws As Worksheet
+    Set ws = ThisWorkbook.Sheets("結合")
+    
+    ' 基準フォルダパス
+    Dim basePath As String
+    basePath = "D:\VBA\20260623_基礎パーツ\parts\"
+    
+    ' --- HTMLファイル読み込み ---
+    Dim html01 As String
+    Dim htmlMiddle As String
+    Dim html02 As String
+    
+    ' 01.html / A2セルのパスのHTML / 02.html をそれぞれ読み込む
+    html01 = ReadFile(basePath & "01.html")
+    htmlMiddle = ReadFile(ws.Range("A2").Value)
+    html02 = ReadFile(basePath & "02.html")
+    
+    ' --- 3つのHTMLを順番に結合 ---
+    Dim combined As String
+    combined = html01 & htmlMiddle & html02
+    
+    ' --- C列・D列を使って文言置換 ---
+    Dim i As Integer
+    i = 2
+    ' C列が空になるまで繰り返す
+    Do While ws.Cells(i, 3).Value <> ""
+        Dim findStr As String
+        Dim replaceStr As String
+        ' C列：置換前の文言
+        findStr = ws.Cells(i, 3).Value
+        ' D列：置換後の文言
+        replaceStr = ws.Cells(i, 4).Value
+        combined = Replace(combined, findStr, replaceStr)
+        i = i + 1
+    Loop
+    
+    ' --- output.html としてファイル出力 ---
+    Dim outputPath As String
+    outputPath = basePath & "output.html"
+    WriteFile outputPath, combined
+    
+    ' 完了メッセージ
+    MsgBox "完了！" & vbCrLf & outputPath, vbInformation
+    
+End Sub
+
+' ========================================
+' ファイルの中身をまるごと文字列として読み込む
+' ========================================
+Private Function ReadFile(filePath As String) As String
+    Dim fileNo As Integer
+    fileNo = FreeFile
+    Dim result As String
+    Dim line As String
+    ' ファイルを開いてEOFまで1行ずつ読み込む
+    Open filePath For Input As #fileNo
+    Do While Not EOF(fileNo)
+        Line Input #fileNo, line
+        result = result & line & vbCrLf
+    Loop
+    Close #fileNo
+    ReadFile = result
+End Function
+
+' ========================================
+' 文字列をファイルに書き出す
+' ========================================
+Private Sub WriteFile(filePath As String, content As String)
+    Dim fileNo As Integer
+    fileNo = FreeFile
+    ' ファイルを開いて内容を書き込む
+    Open filePath For Output As #fileNo
+    Print #fileNo, content
+    Close #fileNo
+End Sub
